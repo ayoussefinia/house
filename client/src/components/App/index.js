@@ -11,11 +11,13 @@ import Home from '../Home';
 import * as routes from '../../constants/routes';
 import Signup from '../Signup';
 import Login from '../Login';
+import Navigation from '../Navigation';
 
 function App() {
   return (
     <Router basename={process.env.PUBLIC_URL}>
       <div className="App">
+      <Navigation />
         <header className="App-header">
           <Switch>
             <Route exact path={routes.HOME} component={() => <Home />} />
