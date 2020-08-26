@@ -33,3 +33,35 @@ export async function createUser(args) {
     throw err;
   }
 }
+
+export async function login(args) {
+  
+  try {
+    const {
+      email,
+      password
+    } = args; //retrieve values from arguments
+
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const passwordIsValid = await bcrypt.compareSync(password, user.password);
+
+    if (!passwordIsValid) {
+      throw new Error('Password incorrect');
+    }
+    
+    else {
+      const token = jwt.sign({ id: user._id }, "mysecret");
+      return { token, password: null, ...user._doc }
+    }
+    
+  }
+  catch(err) {
+    throw err;
+  }
+}
+

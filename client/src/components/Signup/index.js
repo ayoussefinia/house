@@ -11,60 +11,62 @@ function Signup(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = setter => e => {
-    console.log('handle change fired')
     setter(e.target.value);
   }
 
   
-const submit = async (e) => {
-  
-  e.preventDefault();
-  console.log('submit fired');
-  try {
-      const requestBody = {
-          query: `
-              mutation {
-                  createUser(userInput: {
-                      email: "${email}"
-                      password: "${password}"
-                      confirm: "${confirm}"
-                  }) {
-                      _id
-                      token
-                      email
-                  }
-              }
-          `
-      };
+  const submit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-      const { data } = await axios.post('http://localhost:5000/graphql', requestBody);
+    try {
+        const requestBody = {
+            query: `
+                mutation {
+                    createUser(userInput: {
+                        email: "${email}"
+                        password: "${password}"
+                        confirm: "${confirm}"
+                    }) {
+                        _id
+                        token
+                        email
+                    }
+                }
+            `
+        };
 
-      if (data.errors) {
-          console.log(data.errors[0].message);
-      }
-      else {
+        const { data } = await axios.post('http://localhost:5000/graphql', requestBody);
+
+        if (data.errors) {
+          setError(data.errors[0].message);
+          setLoading(false);
+        }
+        else {
+          setError(null);
+          setLoading(false);
           const { _id, token } = await data.data.createUser;
-          
-          dispatch({
-              type: 'SET_AUTH_USER',
-              authUser: {
-                  _id,
-                  email
-              }
-          })
-          localStorage.setItem('token', token);
-          props.history.push('/');
-      }
+            
+            dispatch({
+                type: 'SET_AUTH_USER',
+                authUser: {
+                    _id,
+                    email
+                }
+            })
+            localStorage.setItem('token', token);
+            props.history.push('/');
+        }
+    }
+    catch (e) {
+      setError(e);
+      setLoading(false);
+    }
   }
-  catch (e) {
-      console.log(e);
-  }
-}
-
-
- 
 
   return (
     <div>
@@ -74,7 +76,8 @@ const submit = async (e) => {
           <input className="form-input" type="email" placeholder="Email" value={email} onChange={handleChange(setEmail)} />
           <input className="form-input" type="password" placeholder="Password" value={password} onChange={handleChange(setPassword)} />
           <input className="form-input" type="password" placeholder="Confirm password" value={confirm} onChange={handleChange(setConfirm)} />
-          <input className="form-submit" type="submit" value="Register" onClick ={submit} />
+          <div><span style={{ color: "red" }}>{error || ""}</span></div>
+          <input className="form-submit" type="submit" value={loading ? "Verifying..." : "Register"} onClick ={submit} />
       </form>
       </div>
     </div>
